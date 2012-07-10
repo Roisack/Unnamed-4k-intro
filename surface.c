@@ -5,6 +5,8 @@
 //#define DEBUG // prints to console and error handling
 //#define FILLSURFACE // SDL surface operations
 
+// TODO: Drop SDL_Surface entirely
+
 struct Surface surface;
 struct Surface* render_base_ptr = &surface;
 
@@ -43,7 +45,9 @@ void createSurface(int w, int h)
 #endif
     glBindTexture(GL_TEXTURE_2D, render_base_ptr->id);
     GLuint target = GL_TEXTURE_2D;
+#ifdef DEBUG
     fprintf(stderr, "SDL_CreateRGBSurface\n");
+#endif
     SDL_Surface* temp = SDL_CreateRGBSurface(SDL_SWSURFACE, render_base_ptr->width, render_base_ptr->height, 32, 0, 0, 0, 0);
 #ifdef DEBUG
     if (temp == NULL)
@@ -91,12 +95,14 @@ void renderSurface()
 {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    glTranslatef(0.1f, 0.1f, 0.1f);
-    glScalef(5.0f,5.0f,5.0f);
+    //glTranslatef(-1024.5f, 0.0f, 0.0f);
+    //glScalef(2.0f,2.0f,2.0f);
+    glTranslatef(0.0f,0.0f,0.0f);
+    glScalef(2.0f, 2.0f, 2.0f);
 
     glEnable(GL_TEXTURE_2D);
     glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 
     //glColor4f(1.0f, 1.0f, 1.0f, render_base_ptr->opacity);
 
@@ -106,6 +112,7 @@ void renderSurface()
     
     useShader();
     bind(0, render_base_ptr->id);
+    shaderSetInt("tex0", 0);
     glBegin(GL_QUADS);
         glTexCoord2f(0, 1); glVertex2f(-512, -512);
         glTexCoord2f(1, 1); glVertex2f(512,-512);
