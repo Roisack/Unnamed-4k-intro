@@ -3,15 +3,16 @@
 struct Shader s1;
 struct Shader* s1_ptr = &s1;
 
-//#define DEBUG // Prints to console
+#define DEBUG // Prints to console
 //#define VERIFYFILE // Handle file errors
 //#define READFROMFILE  // If the shaders are read from an external file
 void doShader()
 {
 #ifndef READFROMFILE
 #include "coolShader.h"
-    s1_ptr->vs_source = coolShader_vs;
-    s1_ptr->fs_source = coolShader_fs;
+#include "perlinShader.h"
+    s1_ptr->vs_source = perlinNoise_vs;
+    s1_ptr->fs_source = perlinNoise_fs;
 #else
     s1_ptr->vs_source = loadSource("coolShader.vs");
     s1_ptr->fs_source = loadSource("coolShader.fs");

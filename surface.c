@@ -3,7 +3,7 @@
 #include "shader.h"
 
 //#define DEBUG // prints to console and error handling
-//#define FILLSURFACE // SDL surface operations
+#define FILLSURFACE // SDL surface operations
 
 // TODO: Drop SDL_Surface entirely
 
@@ -65,9 +65,9 @@ void createSurface(int w, int h)
     {
         for (j = 0; j < render_base_ptr->height; j++)
         {
-            col.r = 0.5f;//linear_interpolation(0, render_base_ptr->width, i);
-            col.g = 0.5f;//linear_interpolation(0, render_base_ptr->height, j);
-            col.b = 0.5f;
+            col.r = g_random(0,255);//linear_interpolation(0, render_base_ptr->width, i);
+            col.g = col.r;//linear_interpolation(0, render_base_ptr->height, j);
+            col.b = col.r;
             setPixel(temp, i, j, col);
         }
     }
@@ -98,7 +98,6 @@ void renderSurface()
     //glTranslatef(-1024.5f, 0.0f, 0.0f);
     //glScalef(2.0f,2.0f,2.0f);
     glTranslatef(0.0f,0.0f,0.0f);
-    glScalef(2.0f, 2.0f, 2.0f);
 
     glEnable(GL_TEXTURE_2D);
     glDisable(GL_LIGHTING);
@@ -112,7 +111,7 @@ void renderSurface()
     
     useShader();
     bind(0, render_base_ptr->id);
-    shaderSetInt("tex0", 0);
+    shaderSetInt("baseNoise", 0);
     glBegin(GL_QUADS);
         glTexCoord2f(0, 1); glVertex2f(-512, -512);
         glTexCoord2f(1, 1); glVertex2f(512,-512);
