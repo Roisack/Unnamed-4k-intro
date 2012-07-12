@@ -98,9 +98,10 @@ void renderSurface()
     //glTranslatef(-1024.5f, 0.0f, 0.0f);
     //glScalef(2.0f,2.0f,2.0f);
     glTranslatef(0.0f,0.0f,0.0f);
+    glScalef(0.5f, 0.5f, 0.5f);
 
     glEnable(GL_TEXTURE_2D);
-    glDisable(GL_LIGHTING);
+    glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
 
     //glColor4f(1.0f, 1.0f, 1.0f, render_base_ptr->opacity);
@@ -113,10 +114,10 @@ void renderSurface()
     bind(0, render_base_ptr->id);
     shaderSetInt("baseNoise", 0);
     glBegin(GL_QUADS);
-        glTexCoord2f(0, 1); glVertex2f(-512, -512);
-        glTexCoord2f(1, 1); glVertex2f(512,-512);
-        glTexCoord2f(1, 0); glVertex2f(512, 512);
-        glTexCoord2f(0, 0); glVertex2f(-512,512);
+        glTexCoord2f(0, 1); glVertex2f(-1024, -1024);
+        glTexCoord2f(1, 1); glVertex2f(1024,-1024);
+        glTexCoord2f(1, 0); glVertex2f(1024, 1024);
+        glTexCoord2f(0, 0); glVertex2f(-1024,1024);
     glEnd();
     glPopMatrix();
 }
