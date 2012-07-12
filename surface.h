@@ -22,7 +22,7 @@ void destroySurface();
 
 void setPixel(SDL_Surface* p, int i, int j, SDL_Color c);
 
-void renderSurface();
+void renderSurface(float t);
 void updateSurface(float t);
 
 void bind();

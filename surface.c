@@ -91,7 +91,7 @@ void destroySurface()
 #endif
 }
 
-void renderSurface()
+void renderSurface(float t)
 {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -113,6 +113,7 @@ void renderSurface()
     useShader();
     bind(0, render_base_ptr->id);
     shaderSetInt("baseNoise", 0);
+    shaderSetFloat("time", t*10+1000); 
     glBegin(GL_QUADS);
         glTexCoord2f(0, 1); glVertex2f(-1024, -1024);
         glTexCoord2f(1, 1); glVertex2f(1024,-1024);
@@ -124,7 +125,6 @@ void renderSurface()
 
 void updateSurface(float t)
 {
-    shaderSetFloat("time", t);
 }
 
 void bind(int unit, int id)

@@ -5,7 +5,7 @@
 #include "surface.h"
 
 //#define DEBUG // Prints to console
-
+#define SHOWFPS
 void _start()
 {
     srand(1995);
@@ -33,9 +33,25 @@ void _start()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(65, w/h, 0.1, 1100);
-
+#ifdef SHOWFPS
+    int nextFPS = 2000;
+#endif
+    float demoTime = 0;
     do {
-        time += 0.1;
+        time = 0.001f * SDL_GetTicks();
+        float delta = time - demoTime;
+        if (delta > 0.5)
+            delta = 0;
+        demoTime = time;
+
+#ifdef SHOWFPS
+        if (SDL_GetTicks() > nextFPS)
+        {
+            fprintf(stderr, "FPS: %f\n", (1.0f/delta));
+            nextFPS += 1000;
+        }
+#endif
+
         eye_x = 0;//sin(time / 3);
         eye_y = 0;//sin(time / 5);
         eye_z = 1090;
@@ -48,7 +64,7 @@ void _start()
         glLoadIdentity();
         gluLookAt(eye_x, eye_y, eye_z, center_x, center_y, center_z, 0, 1, 0);
         updateSurface(time);
-        renderSurface();
+        renderSurface(time);
 
         unuseShader();
         glPushMatrix();
@@ -96,6 +112,10 @@ void _start()
         glPopMatrix();
 */
         SDL_GL_SwapBuffers();
+        while (delta < 1.0f / 60.0f)
+        {
+            delta = (0.001f * SDL_GetTicks()-time);
+        }
     } while (e.type != SDL_KEYDOWN);
 
     destroyShader();
