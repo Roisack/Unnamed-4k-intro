@@ -14,8 +14,8 @@ const char* coolShader_fs =
 "void main()"
 "{"
 "   vec4 col;"
-"   col.r = sin(time/10.0);"
-"   col.g = cos(time/10.0);"
+"   col.r = texCoord.s;"
+"   col.g = texCoord.t;"
 "   col.b = col.r / col.g;"
 "   gl_FragColor = col;"
 "}";

@@ -1,5 +1,6 @@
-#include <GL/gl.h>
+//#include <GL/gl.h>
 #include <SDL/SDL.h>
+#include <GL/glew.h>
 #include "shader.h"
 #include "surface.h"
 
@@ -11,8 +12,14 @@ void _start()
     int w = 800;
     int h = 600;
     SDL_Event e;
-
+    
     SDL_SetVideoMode(w, h, 32, SDL_OPENGL | SDL_RESIZABLE);
+
+    GLenum err = glewInit();
+    if (GLEW_OK != err)
+    {   
+        fprintf(stderr, "Error initializing Glew: %s\n", glewGetErrorString(err));
+    }
 
     float eye_x, eye_y, eye_z;
     float center_x, center_y, center_z = 0;
@@ -26,12 +33,12 @@ void _start()
 
     do {
         time += 0.1;
-        //eye_x = sin(time / 3)*150;
-        //eye_y = sin(time / 5)*150;
-        //eye_z = 100;
-        eye_x = 5;
-        eye_y = 5;
-        eye_z = 60;
+        eye_x = sin(time / 3)*150;
+        eye_y = sin(time / 5)*150;
+        eye_z = 100;
+        //eye_x = 5;
+        //eye_y = 5;
+        //eye_z = 60;
         
         SDL_PollEvent(&e);
 
@@ -43,12 +50,12 @@ void _start()
         updateSurface(time);
         renderSurface();
 
-        //unuseShader();
+        unuseShader();
         glPushMatrix();
         glColor3f(1.0f, 0.0f, 0.0f);
 
         // A debug triangle for visualizing the coordinate system
-
+/*
         glBegin(GL_TRIANGLES);
             glVertex3f(0.0f,0.0f,0.0f);
             glVertex3f(100.0f, 1.0f, 1.0f);
@@ -87,7 +94,7 @@ void _start()
             glVertex3f(90.0f, 50.0f, -5.0f);
         glEnd();
         glPopMatrix();
-
+*/
         SDL_GL_SwapBuffers();
     } while (e.type != SDL_KEYDOWN);
 

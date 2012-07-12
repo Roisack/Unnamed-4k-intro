@@ -1,5 +1,5 @@
-#include <GL/gl.h>
-
+//#include <GL/gl.h>
+#include <GL/glew.h>
 struct Shader
 {
     char* vs_source;
