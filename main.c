@@ -1,11 +1,13 @@
 //#include <GL/gl.h>
 #include <SDL/SDL.h>
 #include <GL/glew.h>
+#include <alsa/asoundlib.h>
 #include "shader.h"
 #include "surface.h"
+#include "audio.h"
 
 //#define DEBUG // Prints to console
-#define SHOWFPS
+//#define SHOWFPS
 void _start()
 {
     srand(1995);
@@ -37,6 +39,9 @@ void _start()
     int nextFPS = 2000;
 #endif
     float demoTime = 0;
+
+    initAudio();
+
     do {
         time = 0.001f * SDL_GetTicks();
         float delta = time - demoTime;
@@ -70,53 +75,14 @@ void _start()
         glPushMatrix();
         glColor3f(1.0f, 0.0f, 0.0f);
 
-        // A debug triangle for visualizing the coordinate system
-/*
-        glBegin(GL_TRIANGLES);
-            glVertex3f(0.0f,0.0f,0.0f);
-            glVertex3f(100.0f, 1.0f, 1.0f);
-            glVertex3f(-200.0f, -200.5f, -100.5f);
-        glEnd();
-        glPopMatrix();
-
-        glPushMatrix();
-        glBegin(GL_TRIANGLES);
-            glVertex3f(-20.0f, -20.0f, -10.0f);
-            glVertex3f(-20.0f, -20.0f, 10.0f);
-            glVertex3f(-20.0f, -40.0f, 0.0f);
-        glEnd();
-        glPopMatrix();
-
-        glPushMatrix();
-        glBegin(GL_TRIANGLES);
-            glVertex3f(20.0f, 20.0f, -10.0f);
-            glVertex3f(20.0f, 20.0f, 10.0f);
-            glVertex3f(20.0f, 40.0f, 0.0f);
-        glEnd();
-        glPopMatrix();
-
-        glPushMatrix();
-        glBegin(GL_TRIANGLES);
-            glVertex3f(0.0f, 30.0f, 0.0f);
-            glVertex3f(0.0f, 60.0f, 0.0f);
-            glVertex3f(20.0f, 45.0f, 0.0f);
-        glEnd();
-        glPopMatrix();
-
-        glPushMatrix();
-        glBegin(GL_TRIANGLES);
-            glVertex3f(30.0f, 0.0f, 5.0f);
-            glVertex3f(60.0f, 20.0f, 0.0f);
-            glVertex3f(90.0f, 50.0f, -5.0f);
-        glEnd();
-        glPopMatrix();
-*/
         SDL_GL_SwapBuffers();
         while (delta < 1.0f / 60.0f)
         {
             delta = (0.001f * SDL_GetTicks()-time);
         }
     } while (e.type != SDL_KEYDOWN);
+
+    closeAudio();
 
     destroyShader();
     destroySurface();

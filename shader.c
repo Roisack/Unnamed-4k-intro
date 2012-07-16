@@ -12,8 +12,8 @@ void doShader()
 #include "coolShader.h"
 #include "perlinShader.h"
 #include "interference.h"
-    s1_ptr->vs_source = interference_vs;
-    s1_ptr->fs_source = interference_fs;
+    s1_ptr->vs_source = perlinNoise_vs;
+    s1_ptr->fs_source = perlinNoise_fs;
 #else
     s1_ptr->vs_source = loadSource("coolShader.vs");
     s1_ptr->fs_source = loadSource("coolShader.fs");

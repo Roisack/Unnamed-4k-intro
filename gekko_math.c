@@ -9,3 +9,4 @@ int g_random(int min, int max)
 {
     return ((rand() % (max-min)+min));
 }
+
