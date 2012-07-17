@@ -41,8 +41,21 @@ void _start()
     float demoTime = 0;
 
     initAudio();
+    
+    u_int8_t music[4*48000];
+    unsigned int note;
+    
+    for (note = 0; note < 48000; note++)
+        music[note] = sqrt(note)*1000;
+    for (note = 48000; note < 2*48000; note++)
+        music[note] = 2000*sin(note/5);
+    
+    unsigned int length = 4*48000;
 
     do {
+
+        playSound(music, length);
+
         time = 0.001f * SDL_GetTicks();
         float delta = time - demoTime;
         if (delta > 0.5)
@@ -57,10 +70,10 @@ void _start()
         }
 #endif
 
-        eye_x = 0;//sin(time / 3);
-        eye_y = 0;//sin(time / 5);
-        eye_z = 1090;
-       
+        eye_x = 0 + abs(sin(time*2))*120;
+        eye_y = 0 + cos(time*3)*120;
+        eye_z = 500 + sin(time*5)*150;
+
         SDL_PollEvent(&e);
 
         glClearColor(0.0f, 0.0f, 0.4f, 0);

@@ -113,7 +113,7 @@ void renderSurface(float t)
     useShader();
     bind(0, render_base_ptr->id);
     shaderSetInt("baseNoise", 0);
-    shaderSetFloat("time", t*10+1000); 
+    shaderSetFloat("time", t*20+2500); 
     glBegin(GL_QUADS);
         glTexCoord2f(0, 1); glVertex2f(-1024, -1024);
         glTexCoord2f(1, 1); glVertex2f(1024,-1024);

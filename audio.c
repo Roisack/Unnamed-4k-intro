@@ -23,7 +23,7 @@ int initAudio()
         return -1;
     }
 #else
-    snd_pcm_open(&audio.alsa_handle, audio.alsa_device, SND_PCM_STREAM_PLAYBACK, 0);
+    snd_pcm_open(&audio.alsa_handle, audio.alsa_device, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
 #endif
 
     // Set paremeters for the device
@@ -45,7 +45,7 @@ int playSound(u_int8_t* samples, unsigned int bytes)
     // Send data for ALSA
     while (audio.position < bytes)
     {
-        int written, blocksize;
+        int blocksize;
 
         if (bytes-audio.position < 4096)
         {
@@ -57,18 +57,18 @@ int playSound(u_int8_t* samples, unsigned int bytes)
         }
 
         // Write to the device
-        written = snd_pcm_writei(audio.alsa_handle, &samples[audio.position], blocksize);
+        audio.written = snd_pcm_writei(audio.alsa_handle, &samples[audio.position], blocksize);
 
         // If ALSA can't take more data, try again later. Return to the main loop
-        if (written == -EAGAIN)
+        if (audio.written == -EAGAIN)
         {
-            written = 0;
+            audio.written = 0;
             return 10;
         }
 #ifdef DEBUG
         else
         {
-            if (written < 0)
+            if (audio.written < 0)
             {
                 fprintf(stderr, "Error at writing to the sound device\n");
                 snd_pcm_close(audio.alsa_handle);
@@ -77,7 +77,7 @@ int playSound(u_int8_t* samples, unsigned int bytes)
         }
 #endif
         // Move forwards in the sound data buffer
-        audio.position += written;
+        audio.position += audio.written;
     }
     return 0;
 }

@@ -7,6 +7,7 @@ struct AudioStuff
     snd_pcm_t* alsa_handle;                 // A handle for talking with ALSA
     unsigned int position;                  // Position in the current buffer
     unsigned int samples[16*4096];          // Playback buffer containing actual music
+    unsigned int written;
 };
 
 int initAudio();
