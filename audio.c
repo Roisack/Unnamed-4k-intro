@@ -3,7 +3,7 @@
 //#define DEBUG
 
 struct AudioStuff audio;
-
+ 
 // TODO: Remove fprints and useless error checks for non-debug builds
 // Connects to the sound device using ALSA and sets all required configurations
 int initAudio()
@@ -23,7 +23,8 @@ int initAudio()
         return -1;
     }
 #else
-    snd_pcm_open(&audio.alsa_handle, audio.alsa_device, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
+    //snd_pcm_open(&audio.alsa_handle, audio.alsa_device, SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
+    snd_pcm_open(&audio.alsa_handle, audio.alsa_device, SND_PCM_STREAM_PLAYBACK, 0);
 #endif
 
     // Set paremeters for the device
@@ -40,44 +41,51 @@ int initAudio()
     return 0;
 }
 
-int playSound(u_int8_t* samples, unsigned int bytes)
+// note: the amplitude of the wave played
+// duration: how many repeats. 48000 == 1 sec
+int playSound(unsigned int note, unsigned int duration)
 {
-    // Send data for ALSA
-    while (audio.position < bytes)
+    unsigned int blocksize = 4096;
+
+    unsigned int buffer[duration];
+    unsigned int i;
+
+    // Instrument listing!
+    // note + sqrt(i)*note; // Kind of a drum
+
+    for (i = 0; i < duration; i++)
     {
-        int blocksize;
+        buffer[i] = note + sqrt(i)*note;// * sqrt(sin(note*i));
+    }
 
-        if (bytes-audio.position < 4096)
-        {
-            blocksize = bytes-audio.position;
-        }
-        else
-        {
-            blocksize = 4096;
-        }
+    audio.position = 0;
 
+    // Send data for ALSA
+    while (audio.position < duration)
+    {
+        if (duration - audio.position < 4096)
+        {
+            blocksize = duration-audio.position;
+        }
         // Write to the device
-        audio.written = snd_pcm_writei(audio.alsa_handle, &samples[audio.position], blocksize);
+        audio.written = snd_pcm_writei(audio.alsa_handle, &buffer[audio.position], blocksize);
 
-        // If ALSA can't take more data, try again later. Return to the main loop
         if (audio.written == -EAGAIN)
         {
             audio.written = 0;
-            return 10;
-        }
-#ifdef DEBUG
-        else
+        } else
         {
-            if (audio.written < 0)
-            {
-                fprintf(stderr, "Error at writing to the sound device\n");
-                snd_pcm_close(audio.alsa_handle);
-                return -1;
-            }
+            audio.position += audio.written;
+        }
+
+#ifdef DEBUG
+        if (audio.written < 0)
+        {
+            fprintf(stderr, "Error at writing to the sound device\n");
+            snd_pcm_close(audio.alsa_handle);
+            return -1;
         }
 #endif
-        // Move forwards in the sound data buffer
-        audio.position += audio.written;
     }
     return 0;
 }

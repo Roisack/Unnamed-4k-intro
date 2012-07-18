@@ -42,20 +42,27 @@ void _start()
 
     initAudio();
     
-    u_int8_t music[4*48000];
-    unsigned int note;
-    
-    for (note = 0; note < 48000; note++)
-        music[note] = sqrt(note)*1000;
-    for (note = 48000; note < 2*48000; note++)
-        music[note] = 2000*sin(note/5);
-    
-    unsigned int length = 4*48000;
+    int song[4];
+    int noteLength[4];
+    song[0] = 440;
+    song[1] = 466;
+    song[2] = 493;
+    song[3] = 523;
+    noteLength[0] = 1000;
+    noteLength[1] = 10000;
+    noteLength[2] = 24000;
+    noteLength[3] = 48000;
+
+    fprintf(stderr, "Now playing sound 1\n");
+    if ((playSound(song[0], noteLength[3])) != 0)
+        fprintf(stderr, "Error playing audio\n");
+    fprintf(stderr, "Now playing sound 2\n");
+    if ((playSound(song[2], noteLength[3])) != 0)
+        fprintf(stderr, "Error playing audio\n");
+    if ((playSound(song[1], noteLength[3])) != 0)
+        fprintf(stderr, "Error playing audio\n");
 
     do {
-
-        playSound(music, length);
-
         time = 0.001f * SDL_GetTicks();
         float delta = time - demoTime;
         if (delta > 0.5)
