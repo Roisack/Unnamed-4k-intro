@@ -14,6 +14,7 @@ int initAudio()
     audio.alsa_card = 0;
     audio.alsa_handle;
     audio.position = 0;
+    audio.currentNote = 0;
 
     // Access the soundcard
 #ifdef DEBUG
@@ -41,8 +42,28 @@ int initAudio()
     return 0;
 }
 
+// Push some audio to the sound card, and return to the demo when no more can be pushed. Mark down how much was pushed, and continue to the next note if all the note has been played
+void streamAudio(unsigned int* music, unsigned int* noteDurations, int totalNotes)
+{
+    if (audio.currentNote >= totalNotes)
+        return;
+    
+    unsigned int noteLeft = playSound(music[audio.currentNote], noteDurations[audio.currentNote]);
+    // A part of the note was sent, so reduce that from the note's leftover duration. We'll continue playing this note the next time the audio card accepts input
+    
+    fprintf(stderr, "Played note %d. Total left: %d\n", audio.currentNote, noteDurations[audio.currentNote]);
+
+    noteDurations[audio.currentNote] = noteLeft;
+    if (noteDurations[audio.currentNote] == 0)
+        audio.currentNote++;
+}
+
 // note: the amplitude of the wave played
 // duration: how many repeats. 48000 == 1 sec
+// Returns an integer telling how much of the note was played
+// If the entire note was played, then the return value equals duration
+// Usually the sound card plays only a part of the note as it can accept
+// only so much traffic
 int playSound(unsigned int note, unsigned int duration)
 {
     unsigned int blocksize = 4096;
@@ -73,6 +94,8 @@ int playSound(unsigned int note, unsigned int duration)
         if (audio.written == -EAGAIN)
         {
             audio.written = 0;
+            fprintf(stderr, "Cannot write more. Returning %d\n", duration-audio.position);
+            return (duration-audio.position);
         } else
         {
             audio.position += audio.written;
@@ -87,6 +110,7 @@ int playSound(unsigned int note, unsigned int duration)
         }
 #endif
     }
+    // The entire note has been played
     return 0;
 }
 

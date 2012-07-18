@@ -52,7 +52,8 @@ void _start()
     noteLength[1] = 10000;
     noteLength[2] = 24000;
     noteLength[3] = 48000;
-
+    int totalNotes = 4;
+/*
     fprintf(stderr, "Now playing sound 1\n");
     if ((playSound(song[0], noteLength[3])) != 0)
         fprintf(stderr, "Error playing audio\n");
@@ -61,8 +62,11 @@ void _start()
         fprintf(stderr, "Error playing audio\n");
     if ((playSound(song[1], noteLength[3])) != 0)
         fprintf(stderr, "Error playing audio\n");
-
+*/
     do {
+
+        streamAudio(song, noteLength, totalNotes);
+
         time = 0.001f * SDL_GetTicks();
         float delta = time - demoTime;
         if (delta > 0.5)
