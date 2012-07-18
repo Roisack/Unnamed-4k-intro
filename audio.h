@@ -15,7 +15,7 @@ struct AudioStuff
 };
 
 int initAudio();
-int playSound(unsigned int note, unsigned int duration);
-void streamAudio(unsigned int* notes, unsigned int* noteDurations, int totalNotes);
+int playSound(unsigned int note, unsigned int duration, int modulation);
+void streamAudio(unsigned int* notes, unsigned int* noteDurations, int totalNotes, int* instrument);
 void closeAudio();
 

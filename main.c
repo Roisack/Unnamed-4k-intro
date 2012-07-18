@@ -42,17 +42,53 @@ void _start()
 
     initAudio();
     
-    int song[4];
-    int noteLength[4];
-    song[0] = 440;
-    song[1] = 466;
-    song[2] = 493;
-    song[3] = 523;
-    noteLength[0] = 1000;
-    noteLength[1] = 10000;
-    noteLength[2] = 24000;
-    noteLength[3] = 48000;
-    int totalNotes = 4;
+    int song[64];       // Contains the note as a frequency
+    int noteLength[64]; // Contains the length of this note (48000 == 1 sec)
+    int instrument[64]; // Contains the number of modulation to be used
+    int i;
+
+    song[0] = 494;
+    song[1] = 622;
+    song[2] = 740;
+    song[3] = 494;
+    song[4] = 622;
+    song[5] = 740;
+    song[6] = 494;
+    song[7] = 622;
+    song[8] = 740;
+    song[9] = 494;
+    song[10] = 622;
+    song[11] = 740;
+
+    for (i = 0; i < 64; i++)
+    {
+        if (i > 10)
+            song[i] = 440;
+        noteLength[i] = 20000;
+        instrument[i] = 2;
+    }
+
+    /*
+    for (i = 0; i < 16; i++)
+    {
+        song[i] = 440+(40*i);
+        noteLength[i] = 12000;
+        instrument[i] = 1;
+    }
+    for (i = 16; i < 32; i++)
+    {
+        song[i] = 440;
+        noteLength[i] = 48000;
+        instrument[i] = 2;
+    }
+    for (i = 32; i < 64; i++)
+    {
+        song[i] = 440+(40*(i-32));
+        noteLength[i] = 48000;
+        instrument[i] = 3;
+    }
+    */
+    int totalNotes = 64;
 /*
     fprintf(stderr, "Now playing sound 1\n");
     if ((playSound(song[0], noteLength[3])) != 0)
@@ -65,7 +101,7 @@ void _start()
 */
     do {
 
-        streamAudio(song, noteLength, totalNotes);
+        streamAudio(song, noteLength, totalNotes, instrument);
 
         time = 0.001f * SDL_GetTicks();
         float delta = time - demoTime;

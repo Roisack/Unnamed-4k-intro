@@ -4,7 +4,6 @@
 
 struct AudioStuff audio;
  
-// TODO: Remove fprints and useless error checks for non-debug builds
 // Connects to the sound device using ALSA and sets all required configurations
 int initAudio()
 {
@@ -46,16 +45,13 @@ int initAudio()
 }
 
 // Push some audio to the sound card, and return to the demo when no more can be pushed. Mark down how much was pushed, and continue to the next note if all the note has been played
-void streamAudio(unsigned int* music, unsigned int* noteDurations, int totalNotes)
+void streamAudio(unsigned int* music, unsigned int* noteDurations, int totalNotes, int* instrument)
 {
     if (audio.currentNote >= totalNotes)
         return;
 
-    unsigned int noteLeft = playSound(music[audio.currentNote], noteDurations[audio.currentNote]);
+    unsigned int noteLeft = playSound(music[audio.currentNote], noteDurations[audio.currentNote], instrument[audio.currentNote]);
     // A part of the note was sent, so reduce that from the note's leftover duration. We'll continue playing this note the next time the audio card accepts input
-    
-    fprintf(stderr, "Played note %d. Total left: %d\n", audio.currentNote, noteDurations[audio.currentNote]);
-
     noteDurations[audio.currentNote] = noteLeft;
     if (noteDurations[audio.currentNote] == 0)
     {
@@ -70,7 +66,7 @@ void streamAudio(unsigned int* music, unsigned int* noteDurations, int totalNote
 // If the entire note was played, then the return value equals duration
 // Usually the sound card plays only a part of the note as it can accept
 // only so much traffic
-int playSound(unsigned int note, unsigned int duration)
+int playSound(unsigned int note, unsigned int duration, int modulation)
 {
     unsigned int blocksize = 512;
 
@@ -78,10 +74,21 @@ int playSound(unsigned int note, unsigned int duration)
 
     // Instrument listing!
     // note + sqrt(i)*note; // Kind of a drum
+    // note - sqrt(sin(audio.oldPosition+i*note*audio.oldPosition)); // A wet sound
 
     for (i = 0; i < duration && i < audio.stream_limit; i++)
     {
-        audio.buffer[audio.oldPosition+i] = note + sqrt(audio.oldPosition+i)*note;// * sqrt(sin(note*i));
+        if (modulation == 1)
+            audio.buffer[audio.oldPosition+i] = note + sqrt(audio.oldPosition+i)*note;
+        else if (modulation == 2)
+            audio.buffer[audio.oldPosition+i] = sqrt(note)*i;
+        else if (modulation == 3)
+            audio.buffer[audio.oldPosition+i] = note + tan(audio.oldPosition+i)*note;
+        else if (modulation == 4)
+            audio.buffer[audio.oldPosition+i] = note - sqrt(audio.oldPosition+i)*note;
+        else
+            audio.buffer[audio.oldPosition+i] = note * sqrt(audio.oldPosition+i)*note;
+
     }
 
     audio.position = 0;
@@ -101,7 +108,6 @@ int playSound(unsigned int note, unsigned int duration)
         {
             audio.written = 0;
             audio.oldPosition = audio.oldPosition + totalStreamed;
-            fprintf(stderr, "Cannot write more. Returning %d\n", duration-audio.position);
             return (duration-audio.position);
         } else
         {
