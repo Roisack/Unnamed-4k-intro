@@ -15,6 +15,9 @@ int initAudio()
     audio.alsa_handle;
     audio.position = 0;
     audio.currentNote = 0;
+    audio.hasBeenModulated = 1;
+    audio.stream_limit = 512;
+    audio.oldPosition = 0;
 
     // Access the soundcard
 #ifdef DEBUG
@@ -47,7 +50,7 @@ void streamAudio(unsigned int* music, unsigned int* noteDurations, int totalNote
 {
     if (audio.currentNote >= totalNotes)
         return;
-    
+
     unsigned int noteLeft = playSound(music[audio.currentNote], noteDurations[audio.currentNote]);
     // A part of the note was sent, so reduce that from the note's leftover duration. We'll continue playing this note the next time the audio card accepts input
     
@@ -55,7 +58,10 @@ void streamAudio(unsigned int* music, unsigned int* noteDurations, int totalNote
 
     noteDurations[audio.currentNote] = noteLeft;
     if (noteDurations[audio.currentNote] == 0)
+    {
+        audio.oldPosition = 0;
         audio.currentNote++;
+    }
 }
 
 // note: the amplitude of the wave played
@@ -66,39 +72,41 @@ void streamAudio(unsigned int* music, unsigned int* noteDurations, int totalNote
 // only so much traffic
 int playSound(unsigned int note, unsigned int duration)
 {
-    unsigned int blocksize = 4096;
+    unsigned int blocksize = 512;
 
-    unsigned int buffer[duration];
     unsigned int i;
 
     // Instrument listing!
     // note + sqrt(i)*note; // Kind of a drum
 
-    for (i = 0; i < duration; i++)
+    for (i = 0; i < duration && i < audio.stream_limit; i++)
     {
-        buffer[i] = note + sqrt(i)*note;// * sqrt(sin(note*i));
+        audio.buffer[audio.oldPosition+i] = note + sqrt(audio.oldPosition+i)*note;// * sqrt(sin(note*i));
     }
 
     audio.position = 0;
+    unsigned int totalStreamed = 0;
 
     // Send data for ALSA
-    while (audio.position < duration)
+    while (audio.position < duration && (totalStreamed < audio.stream_limit))
     {
-        if (duration - audio.position < 4096)
+        if (duration - audio.position < blocksize)
         {
             blocksize = duration-audio.position;
         }
         // Write to the device
-        audio.written = snd_pcm_writei(audio.alsa_handle, &buffer[audio.position], blocksize);
+        audio.written = snd_pcm_writei(audio.alsa_handle, &audio.buffer[audio.oldPosition + audio.position], blocksize);
 
         if (audio.written == -EAGAIN)
         {
             audio.written = 0;
+            audio.oldPosition = audio.oldPosition + totalStreamed;
             fprintf(stderr, "Cannot write more. Returning %d\n", duration-audio.position);
             return (duration-audio.position);
         } else
         {
             audio.position += audio.written;
+            totalStreamed += audio.written;
         }
 
 #ifdef DEBUG
@@ -110,8 +118,9 @@ int playSound(unsigned int note, unsigned int duration)
         }
 #endif
     }
-    // The entire note has been played
-    return 0;
+    
+    audio.oldPosition += totalStreamed;
+    return (duration-audio.position);
 }
 
 void closeAudio()
