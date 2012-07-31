@@ -81,13 +81,11 @@ int playSound(unsigned int note, unsigned int duration, int modulation)
         if (modulation == 1)
             audio.buffer[audio.oldPosition+i] = note + sqrt(audio.oldPosition+i)*note;
         else if (modulation == 2)
-            audio.buffer[audio.oldPosition+i] = sqrt(note)*i;
+            audio.buffer[audio.oldPosition+i] = note + sqrt(audio.oldPosition+i*2)*note;
         else if (modulation == 3)
-            audio.buffer[audio.oldPosition+i] = note + tan(audio.oldPosition+i)*note;
+            audio.buffer[audio.oldPosition+i] = note + sqrt(i-audio.oldPosition)*note/2;
         else if (modulation == 4)
-            audio.buffer[audio.oldPosition+i] = note - sqrt(audio.oldPosition+i)*note;
-        else
-            audio.buffer[audio.oldPosition+i] = note * sqrt(audio.oldPosition+i)*note;
+            audio.buffer[audio.oldPosition+i] = sqrt(note)*i;
 
     }
 
@@ -104,7 +102,7 @@ int playSound(unsigned int note, unsigned int duration, int modulation)
         // Write to the device
         audio.written = snd_pcm_writei(audio.alsa_handle, &audio.buffer[audio.oldPosition + audio.position], blocksize);
 
-        if (audio.written == -EAGAIN)
+        if (audio.written == -11)
         {
             audio.written = 0;
             audio.oldPosition = audio.oldPosition + totalStreamed;

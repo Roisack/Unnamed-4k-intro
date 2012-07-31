@@ -97,8 +97,8 @@ void renderSurface(float t)
     glPushMatrix();
     //glTranslatef(-1024.5f, 0.0f, 0.0f);
     //glScalef(2.0f,2.0f,2.0f);
-    glTranslatef(0.0f,0.0f,0.0f);
-    glScalef(0.5f, 0.5f, 0.5f);
+    glTranslatef(60.0f,60.0f,0.0f);
+    glScalef(0.1f, 0.1f, 0.1f);
 
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_LIGHTING);

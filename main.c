@@ -1,4 +1,3 @@
-//#include <GL/gl.h>
 #include <SDL/SDL.h>
 #include <GL/glew.h>
 #include <alsa/asoundlib.h>
@@ -8,7 +7,17 @@
 
 //#define DEBUG // Prints to console
 //#define SHOWFPS
+
+// OpenGL context problem: If using void _start as entrypoint
+// glMaterialfv will cause a segfault. About 50 bytes are lost
+// by using void _start
+//#define USEHACKENTRY
+
+#ifdef USEHACKENTRY
 void _start()
+#else
+int main()
+#endif
 {
     srand(1995);
     int w = 800;
@@ -42,66 +51,63 @@ void _start()
 
     initAudio();
     
-    int song[64];       // Contains the note as a frequency
-    int noteLength[64]; // Contains the length of this note (48000 == 1 sec)
-    int instrument[64]; // Contains the number of modulation to be used
+    int song[1024];       // Contains the note as a frequency
+    int noteLength[1024]; // Contains the length of this note (45000 == 1 sec)
+    int instrument[1024]; // Contains the number of modulation to be used
     int i;
 
-    song[0] = 494;
-    song[1] = 622;
-    song[2] = 740;
-    song[3] = 494;
-    song[4] = 622;
-    song[5] = 740;
-    song[6] = 494;
-    song[7] = 622;
-    song[8] = 740;
-    song[9] = 494;
-    song[10] = 622;
-    song[11] = 740;
-
-    for (i = 0; i < 64; i++)
-    {
-        if (i > 10)
-            song[i] = 440;
-        noteLength[i] = 20000;
-        instrument[i] = 2;
-    }
-
-    /*
-    for (i = 0; i < 16; i++)
-    {
-        song[i] = 440+(40*i);
-        noteLength[i] = 12000;
-        instrument[i] = 1;
-    }
-    for (i = 16; i < 32; i++)
+    int count = 1;
+    for (i = 0; i < 1024; i++)
     {
         song[i] = 440;
-        noteLength[i] = 48000;
-        instrument[i] = 2;
+
+        if ( i % 16 == 0 || i % 16 == 1 && i > 2)
+        {
+            instrument[i] = 2;
+            noteLength[i] = 4000;
+        }
+        else if (i % 16 == 2)
+        {
+            instrument[i] = 4;
+            noteLength[i] = 5000;
+        }
+        else if (i % 8 == 0)
+        {
+            instrument[i] = 1;
+            noteLength[i] = 5000;
+        } else if (i % 8 == 1 || i % 8 == 2 || i % 8 == 3)
+        {
+            instrument[i] = 3;
+            noteLength[i] = 5000;
+        } else if (i % 8 == 4)
+        {
+            instrument[i] = 2;
+            noteLength[i] = 5000;
+        } else
+        {
+            instrument[i] = 3;
+            noteLength[i] = 5000;
+        }
     }
-    for (i = 32; i < 64; i++)
-    {
-        song[i] = 440+(40*(i-32));
-        noteLength[i] = 48000;
-        instrument[i] = 3;
-    }
-    */
-    int totalNotes = 64;
-/*
-    fprintf(stderr, "Now playing sound 1\n");
-    if ((playSound(song[0], noteLength[3])) != 0)
-        fprintf(stderr, "Error playing audio\n");
-    fprintf(stderr, "Now playing sound 2\n");
-    if ((playSound(song[2], noteLength[3])) != 0)
-        fprintf(stderr, "Error playing audio\n");
-    if ((playSound(song[1], noteLength[3])) != 0)
-        fprintf(stderr, "Error playing audio\n");
-*/
+
+    int totalNotes = 1024;
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_DEPTH_TEST);
+
+    // Light settings
+    GLfloat mat_specular[] = { 1.0, 0.0, 0.0, 1.0 };
+    GLfloat mat_shininess[] = { 6.0 };
+    GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glShadeModel(GL_SMOOTH);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
     do {
 
-        streamAudio(song, noteLength, totalNotes, instrument);
+        //streamAudio(song, noteLength, totalNotes, instrument);
 
         time = 0.001f * SDL_GetTicks();
         float delta = time - demoTime;
@@ -117,9 +123,9 @@ void _start()
         }
 #endif
 
-        eye_x = 0 + abs(sin(time*2))*120;
-        eye_y = 0 + cos(time*3)*120;
-        eye_z = 500 + sin(time*5)*150;
+        eye_x = 100;// + abs(sin(time*2))*120;
+        eye_y = 100;// + cos(time*3)*120;
+        eye_z = 400;// + sin(time*5)*150;
 
         SDL_PollEvent(&e);
 
@@ -130,10 +136,19 @@ void _start()
         gluLookAt(eye_x, eye_y, eye_z, center_x, center_y, center_z, 0, 1, 0);
         updateSurface(time);
         renderSurface(time);
-
         unuseShader();
+
+       glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+       glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+        // Render a floor
+        glBegin(GL_TRIANGLE_STRIP);
+            glVertex3f(-100.0f, 100.0f, -5.0f);
+            glVertex3f(100.0f, 100.0f, -5.0f);
+            glVertex3f(-100, -100, -5.0f);
+            glVertex3f(100, -100, -5.0f);
+        glEnd();
+
         glPushMatrix();
-        glColor3f(1.0f, 0.0f, 0.0f);
 
         SDL_GL_SwapBuffers();
         while (delta < 1.0f / 60.0f)
@@ -153,10 +168,14 @@ void _start()
 #ifdef DEBUG
     fprintf(stderr, "Exiting\n");
 #endif
+#ifdef USEHACKENTRY
     asm ( \
       "movl $1,%eax\n" \
       "xor %ebx,%ebx\n" \
       "int $128\n" \
     );
+#else
+    return 0;
+#endif
 }
 

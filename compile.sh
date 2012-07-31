@@ -1,9 +1,7 @@
 rm *.o
 rm 4k_intro*
 
-echo "gcc -m32 -Os -fomit-frame-pointer -c main.c shader.c surface.c gekko_math.c audio.c"
-gcc -m32 -Os -fomit-frame-pointer -c main.c shader.c surface.c gekko_math.c audio.c
-echo "ld -m elf_i386 -dynamic-linker /lib/ld-linux.so.2 main.o shader.o surface.o gekko_math.o audio.o /usr/lib32/libSDL.so /usr/lib32/libGLEW.so /usr/lib32/libasound.so -o 4k_intro"
+gcc -m32 -Os -c main.c shader.c surface.c gekko_math.c audio.c
 ld -m elf_i386 -dynamic-linker /lib/ld-linux.so.2 main.o shader.o surface.o gekko_math.o audio.o /usr/lib32/libSDL.so /usr/lib32/libGLEW.so /usr/lib32/libasound.so -o 4k_intro
 #ORIGINAL="$(du -b main.o |cut -c -5)"
 #echo "Original size $ORIGINAL"

@@ -1,4 +1,4 @@
-#include <alsa/asoundlib.h>
+#include <alsa/asoundlib2.h>
 
 struct AudioStuff
 {
