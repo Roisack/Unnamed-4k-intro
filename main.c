@@ -40,7 +40,9 @@ int main()
     float time = 0.0;
 
     createSurface(1024, 1024);
-  
+    struct Shader* shader1 = getShader(0);
+    struct Shader* shader2 = getShader(1);
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(65, w/h, 0.1, 1100);
@@ -57,14 +59,27 @@ int main()
     int i;
 
     int count = 1;
+    
+    /*
+    for (i = 0; i < 32; i++)
+    {
+        if (i % 3 == 0)
+            song[i] = 440;
+        else if (i % 3 == 1)
+            song[i] = 369;
+        else if (i % 3 == 2)
+            song[i] = 523;
+        noteLength[i] = 2000;
+    }
+    */
+    
     for (i = 0; i < 1024; i++)
     {
         song[i] = 440;
-
         if ( i % 16 == 0 || i % 16 == 1 && i > 2)
         {
-            instrument[i] = 2;
-            noteLength[i] = 4000;
+            instrument[i] = 0;
+            noteLength[i] = 8000;
         }
         else if (i % 16 == 2)
         {
@@ -89,25 +104,30 @@ int main()
             noteLength[i] = 5000;
         }
     }
-
+    
     int totalNotes = 1024;
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
 
-    // Light settings
-    GLfloat mat_specular[] = { 1.0, 0.0, 0.0, 1.0 };
-    GLfloat mat_shininess[] = { 6.0 };
-    GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+    // Light and material settings
+    GLfloat mat_specular[] = { 1.0, 0.5, 0.5, 1.0 };
+    GLfloat mat_shininess[] = { 15.0 };
+    GLfloat mat_diffuse[] = { 0.5, 0.5, 1.0, 1.0 };
+    GLfloat mat_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
+    GLfloat light_position[] = { 30.0, 50.0, 30.0, 1.0 };
+    GLfloat light_specular[] = { 0.8, 0.7, 0.5, 1.0 };
+    GLfloat light_ambient[] = { 0.4, 0.4, 1.0, 1.0 };
+    GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat light_spot_direction[] = { -1.0, -1.0, 0.0 };
+
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glShadeModel(GL_SMOOTH);
 
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-
     do {
 
-        //streamAudio(song, noteLength, totalNotes, instrument);
+        streamAudio(song, noteLength, totalNotes, instrument);
 
         time = 0.001f * SDL_GetTicks();
         float delta = time - demoTime;
@@ -126,6 +146,8 @@ int main()
         eye_x = 100;// + abs(sin(time*2))*120;
         eye_y = 100;// + cos(time*3)*120;
         eye_z = 400;// + sin(time*5)*150;
+        //light_position[0] = sin(time) * 1000;
+        //light_position[1] = sin(time) * 1000;
 
         SDL_PollEvent(&e);
 
@@ -134,22 +156,40 @@ int main()
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         gluLookAt(eye_x, eye_y, eye_z, center_x, center_y, center_z, 0, 1, 0);
-        updateSurface(time);
         renderSurface(time);
-        unuseShader();
+        unuseShader(shader1);
 
-       glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-       glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_DEPTH_TEST);
+        glPushMatrix();
+        //glTranslatef(0.0f, 0.0f, -5.0f);
+        
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+        glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_spot_direction);
+        glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 45.0);
+        glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0);
+        glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.5);
+        glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.5);
+        glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.2);
+
+        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+        //useShader(shader2);
         // Render a floor
         glBegin(GL_TRIANGLE_STRIP);
-            glVertex3f(-100.0f, 100.0f, -5.0f);
-            glVertex3f(100.0f, 100.0f, -5.0f);
-            glVertex3f(-100, -100, -5.0f);
-            glVertex3f(100, -100, -5.0f);
+            glVertex3f(-1000.0f, -5.0f, 1000.0f);
+            glVertex3f(1000.0f, -5.0f, 1000.0f);
+            glVertex3f(-1000, -5, -1000.0f);
+            glVertex3f(1000, -5, -1000.0f);
         glEnd();
 
-        glPushMatrix();
-
+        unuseShader();
+        glPopMatrix();
         SDL_GL_SwapBuffers();
         while (delta < 1.0f / 60.0f)
         {
@@ -159,7 +199,8 @@ int main()
 
     closeAudio();
 
-    destroyShader();
+    destroyShader(shader1);
+    destroyShader(shader2);
     destroySurface();
 #ifdef DEBUG
     fprintf(stderr, "SDL_Quit()\n");

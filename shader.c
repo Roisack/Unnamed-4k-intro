@@ -2,6 +2,10 @@
 #include <stdio.h>
 struct Shader s1;
 struct Shader* s1_ptr = &s1;
+struct Shader s2;
+struct Shader* s2_ptr = &s2;
+struct Shader s3;
+struct Shader* s3_ptr = &s3;
 
 //#define DEBUG // Prints to console
 //#define VERIFYFILE // Handle file errors
@@ -12,8 +16,13 @@ void doShader()
 #include "coolShader.h"
 #include "perlinShader.h"
 #include "interference.h"
+#include "phong.h"
     s1_ptr->vs_source = interference_vs;
     s1_ptr->fs_source = interference_fs;
+    s2_ptr->vs_source = phong_vs;
+    s2_ptr->fs_source = phong_fs;
+    s3_ptr->vs_source = perlinNoise_vs;
+    s3_ptr->fs_source = perlinNoise_fs;
 #else
     s1_ptr->vs_source = loadSource("coolShader.vs");
     s1_ptr->fs_source = loadSource("coolShader.fs");
@@ -21,7 +30,8 @@ void doShader()
 #ifdef DEBUG
     fprintf(stderr, "%s\n**%s\n**", s1_ptr->vs_source, s1_ptr->fs_source);
 #endif
-    compile();
+    compile(s1_ptr);
+    compile(s2_ptr);
 }
 
 #ifdef READFROMFILE
@@ -79,55 +89,66 @@ char* loadSource(const char* filename)
 }
 #endif
 
-void compile()
+void compile(struct Shader* toCompile)
 {
 #ifdef DEBUG
     fprintf(stderr, "Compiling\n");
 #endif
-    s1_ptr->vs_handle = glCreateShader(GL_VERTEX_SHADER);
-    s1_ptr->fs_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    toCompile->vs_handle = glCreateShader(GL_VERTEX_SHADER);
+    toCompile->fs_handle = glCreateShader(GL_FRAGMENT_SHADER);
 
-    const GLchar* vs_src = s1_ptr->vs_source;
-    const GLchar* fs_src = s1_ptr->fs_source;
+    const GLchar* vs_src = toCompile->vs_source;
+    const GLchar* fs_src = toCompile->fs_source;
     char* infoLog;
     int infoLogLength = 0;  
 
-    glShaderSource(s1_ptr->vs_handle, 1, &vs_src, NULL);
-    glShaderSource(s1_ptr->fs_handle, 1, &fs_src, NULL);
+    glShaderSource(toCompile->vs_handle, 1, &vs_src, NULL);
+    glShaderSource(toCompile->fs_handle, 1, &fs_src, NULL);
 #ifdef DEBUG
-    fprintf(stderr, "---\n\n%s\n\n%s\n\n", s1_ptr->vs_source, s1_ptr->fs_source);
+    fprintf(stderr, "---\n\n%s\n\n%s\n\n", toCompile->vs_source, toCompile->fs_source);
 #endif
 
-    glCompileShader(s1_ptr->vs_handle);
+    glCompileShader(toCompile->vs_handle);
 #ifdef DEBUG
-    printShaderInfoLog(s1_ptr->vs_handle);
+    printShaderInfoLog(toCompile->vs_handle);
     if (!(glGetError() == GL_NO_ERROR))
     {
         fprintf(stderr, "Error compiling vertex shader %d\n", glGetError());
     }
 #endif
 
-    glCompileShader(s1_ptr->fs_handle);
+    glCompileShader(toCompile->fs_handle);
 #ifdef DEBUG
-    printShaderInfoLog(s1_ptr->fs_handle);
+    printShaderInfoLog(toCompile->fs_handle);
     if (!(glGetError() == GL_NO_ERROR))
     {
         fprintf(stderr, "Error compiling fragment shader %d\n", glGetError());
     }
 #endif
 
-    s1_ptr->shader_handle = glCreateProgram();
+    toCompile->shader_handle = glCreateProgram();
 #ifdef DEBUG
-    fprintf(stderr, "shader_handle is %d\n", s1_ptr->shader_handle);
+    fprintf(stderr, "shader_handle is %d\n", toCompile->shader_handle);
 #endif
-    glAttachShader(s1_ptr->shader_handle, s1_ptr->vs_handle);
-    glAttachShader(s1_ptr->shader_handle, s1_ptr->fs_handle);
-    glLinkProgram(s1_ptr->shader_handle);
+    glAttachShader(toCompile->shader_handle, toCompile->vs_handle);
+    glAttachShader(toCompile->shader_handle, toCompile->fs_handle);
+    glLinkProgram(toCompile->shader_handle);
 #ifdef DEBUG
-    fprintf(stderr, "shader_handle is %d\n", s1_ptr->shader_handle);
-    printProgramInfoLog(s1_ptr->shader_handle);
+    fprintf(stderr, "shader_handle is %d\n", toCompile->shader_handle);
+    printProgramInfoLog(toCompile->shader_handle);
 #endif
 }
+
+struct Shader* getShader(int id)
+{
+    if (id == 0)
+        return s1_ptr;
+    if (id == 1)
+        return s2_ptr;
+    else
+        return NULL;
+}
+
 
 #ifdef DEBUG
 void printShaderInfoLog(GLuint obj)
@@ -166,30 +187,30 @@ void printProgramInfoLog(GLuint obj)
 
 #endif
 
-void destroyShader()
+void destroyShader(struct Shader* s)
 {
 #ifdef DEBUG
     fprintf(stderr, "Destroying shader\n");
 #endif
     glDeleteProgram(s1_ptr->shader_handle);
-    glDeleteShader(s1_ptr->vs_handle);
-    glDeleteShader(s1_ptr->fs_handle);
+    glDeleteShader(s->vs_handle);
+    glDeleteShader(s->fs_handle);
 #ifdef DEBUG
     fprintf(stderr, "Freeing source\n");
 #endif
-    free(s1_ptr->vs_source);
+    free(s->vs_source);
 #ifdef DEBUG
     fprintf(stderr, "Freeing source\n");
 #endif
-    free(s1_ptr->fs_source);
+    free(s->fs_source);
 #ifdef DEBUG
     fprintf(stderr, "Shader destroyed\n");
 #endif
 }
 
-void useShader()
+void useShader(struct Shader* s)
 {
-    glUseProgram(s1_ptr->shader_handle);
+    glUseProgram(s->shader_handle);
 }
 
 void unuseShader()
@@ -197,13 +218,13 @@ void unuseShader()
     glUseProgram(0);
 }
 
-void shaderSetInt(const char* n, int i)
+void shaderSetInt(const char* n, int i, struct Shader* s)
 {
-    glUniform1i(glGetUniformLocation(s1_ptr->shader_handle, n), i);
+    glUniform1i(glGetUniformLocation(s->shader_handle, n), i);
 }
 
-void shaderSetFloat(const char* n, float f)
+void shaderSetFloat(const char* n, float f, struct Shader* s)
 {
-    glUniform1f(glGetUniformLocation(s1_ptr->shader_handle, n), f);
+    glUniform1f(glGetUniformLocation(s->shader_handle, n), f);
 }
 

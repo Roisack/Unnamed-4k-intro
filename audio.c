@@ -7,14 +7,14 @@ struct AudioStuff audio;
 // Connects to the sound device using ALSA and sets all required configurations
 int initAudio()
 {
+#ifdef DEBUG
     int i;
     int err;
+#endif
     audio.alsa_device = "default";
-    audio.alsa_card = 0;
     audio.alsa_handle;
     audio.position = 0;
     audio.currentNote = 0;
-    audio.hasBeenModulated = 1;
     audio.stream_limit = 512;
     audio.oldPosition = 0;
 

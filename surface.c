@@ -48,6 +48,7 @@ void createSurface(int w, int h)
 #ifdef DEBUG
     fprintf(stderr, "SDL_CreateRGBSurface\n");
 #endif
+    int baseArray[1024][1024];
     SDL_Surface* temp = SDL_CreateRGBSurface(SDL_SWSURFACE, render_base_ptr->width, render_base_ptr->height, 32, 0, 0, 0, 0);
 #ifdef DEBUG
     if (temp == NULL)
@@ -81,7 +82,8 @@ void createSurface(int w, int h)
     glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     doShader();
-    useShader();
+    render_base_ptr->shader1 = getShader(0);
+    useShader(render_base_ptr->shader1);
 }
 
 void destroySurface()
@@ -95,8 +97,6 @@ void renderSurface(float t)
 {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    //glTranslatef(-1024.5f, 0.0f, 0.0f);
-    //glScalef(2.0f,2.0f,2.0f);
     glTranslatef(60.0f,60.0f,0.0f);
     glScalef(0.1f, 0.1f, 0.1f);
 
@@ -110,10 +110,10 @@ void renderSurface(float t)
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glBlendEquation(GL_ADD);
     
-    useShader();
+    useShader(render_base_ptr->shader1);
     bind(0, render_base_ptr->id);
-    shaderSetInt("baseNoise", 0);
-    shaderSetFloat("time", t*20+2500); 
+    shaderSetInt("base", 0, render_base_ptr->shader1);
+    shaderSetFloat("time", t*20+2500, render_base_ptr->shader1); 
     glBegin(GL_QUADS);
         glTexCoord2f(0, 1); glVertex2f(-1024, -1024);
         glTexCoord2f(1, 1); glVertex2f(1024,-1024);
@@ -121,10 +121,6 @@ void renderSurface(float t)
         glTexCoord2f(0, 0); glVertex2f(-1024,1024);
     glEnd();
     glPopMatrix();
-}
-
-void updateSurface(float t)
-{
 }
 
 void bind(int unit, int id)
