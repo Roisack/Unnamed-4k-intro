@@ -19,12 +19,10 @@ void _start()
 int main()
 #endif
 {
-    srand(1995);
-    int w = 800;
-    int h = 600;
+//    srand(1995);
     SDL_Event e;
     
-    SDL_SetVideoMode(w, h, 32, SDL_OPENGL | SDL_RESIZABLE);
+    SDL_SetVideoMode(800, 600, 32, SDL_OPENGL | SDL_RESIZABLE);
 #ifndef DEBUG
     glewInit();
 #else
@@ -45,7 +43,7 @@ int main()
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(65, w/h, 0.1, 1100);
+    gluPerspective(65, 800/600, 0.1, 1100);
 #ifdef SHOWFPS
     int nextFPS = 2000;
 #endif
@@ -58,8 +56,6 @@ int main()
     int instrument[1024]; // Contains the number of modulation to be used
     int i;
 
-    int count = 1;
-    
     /*
     for (i = 0; i < 32; i++)
     {
@@ -106,7 +102,7 @@ int main()
     }
     
     int totalNotes = 1024;
-
+/*
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
@@ -121,9 +117,9 @@ int main()
     GLfloat light_ambient[] = { 0.4, 0.4, 1.0, 1.0 };
     GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat light_spot_direction[] = { -1.0, -1.0, 0.0 };
-
+*/
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glShadeModel(GL_SMOOTH);
+    //glShadeModel(GL_SMOOTH);
 
     do {
 
@@ -131,8 +127,8 @@ int main()
 
         time = 0.001f * SDL_GetTicks();
         float delta = time - demoTime;
-        if (delta > 0.5)
-            delta = 0;
+//        if (delta > 0.5)
+//            delta = 0;
         demoTime = time;
 
 #ifdef SHOWFPS
@@ -151,7 +147,7 @@ int main()
 
         SDL_PollEvent(&e);
 
-        glClearColor(0.0f, 0.0f, 0.4f, 0);
+        //glClearColor(0.0f, 0.0f, 0.4f, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
@@ -164,7 +160,7 @@ int main()
         glPushMatrix();
         //glTranslatef(0.0f, 0.0f, -5.0f);
         
-        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        /*glLightfv(GL_LIGHT0, GL_POSITION, light_position);
         glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
         glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
@@ -179,6 +175,7 @@ int main()
         glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
         glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
         glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+        */
         //useShader(shader2);
         // Render a floor
         glBegin(GL_TRIANGLE_STRIP);
@@ -188,7 +185,7 @@ int main()
             glVertex3f(1000, -5, -1000.0f);
         glEnd();
 
-        unuseShader();
+        //unuseShader();
         glPopMatrix();
         SDL_GL_SwapBuffers();
         while (delta < 1.0f / 60.0f)
@@ -199,9 +196,9 @@ int main()
 
     closeAudio();
 
-    destroyShader(shader1);
-    destroyShader(shader2);
-    destroySurface();
+    //destroyShader(shader1);
+    //destroyShader(shader2);
+    //destroySurface();
 #ifdef DEBUG
     fprintf(stderr, "SDL_Quit()\n");
 #endif

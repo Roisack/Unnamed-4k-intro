@@ -17,8 +17,8 @@ void doShader()
 #include "perlinShader.h"
 #include "interference.h"
 #include "phong.h"
-    s1_ptr->vs_source = interference_vs;
-    s1_ptr->fs_source = interference_fs;
+    s1_ptr->vs_source = perlinNoise_vs;
+    s1_ptr->fs_source = perlinNoise_fs;
     s2_ptr->vs_source = phong_vs;
     s2_ptr->fs_source = phong_fs;
     s3_ptr->vs_source = perlinNoise_vs;
